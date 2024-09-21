@@ -1,5 +1,6 @@
-import React from "react";
+import { Button } from "@/components/ui/button";
 import { useQuery, gql } from "@apollo/client";
+import { Link } from "react-router-dom";
 
 const FILMS_QUERY = gql`
   query GetPosts(
@@ -747,35 +748,19 @@ export default function Root() {
       filterBy: [],
     },
   });
-  
+  console.log(data, loading, error);
+
   if (loading) return "Loading...";
   if (error) return <pre>{error.message}</pre>;
-
 
   return (
     <>
       <div id="sidebar">
-        <h1>React Router Contacts</h1>
-        <div>
-          <form id="search-form" role="search">
-            <input
-              id="q"
-              aria-label="Search contacts"
-              placeholder="Search"
-              type="search"
-              name="q"
-            />
-            <div id="search-spinner" aria-hidden hidden={true} />
-            <div className="sr-only" aria-live="polite"></div>
-          </form>
-          <form method="post">
-            <button type="submit">New</button>
-          </form>
-        </div>
         <div>
           <h1>SpaceX Launches</h1>
+          <Button>Click me</Button>
           <ul>
-            {data.posts.nodes.map((launch) => (
+            {data.posts.nodes.map((launch: any) => (
               <li key={launch.id}>{launch.title}</li>
             ))}
           </ul>
@@ -783,10 +768,10 @@ export default function Root() {
         <nav>
           <ul>
             <li>
-              <a href={`/contacts/1`}>Your Name</a>
+              <Link to={`/contacts/1`}>Your Name</Link>
             </li>
             <li>
-              <a href={`/contacts/2`}>Your Friend</a>
+              <Link to={`/contacts/2`}>Your Friend</Link>
             </li>
           </ul>
         </nav>
