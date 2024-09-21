@@ -27,13 +27,12 @@ const router = createBrowserRouter([
         path: "/posts",
         element: <Posts />,
         errorElement: <ErrorPage />,
-        children: [
-          {
-            path: "posts/:postId",
-            element: <Post />,
-            errorElement: <ErrorPage />,
-          },
-        ],
+        children: [],
+      },
+      {
+        path: "posts/:postId",
+        element: <Post />,
+        errorElement: <ErrorPage />,
       },
     ],
   },
