@@ -1,247 +1,158 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ThumbsUp, MessageCircle } from "lucide-react";
+import { useMutation, useQuery } from "@apollo/client";
+import { addReaction, getPosts, removeReaction } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
-// Mock data for initial and additional posts
-const initialPosts = [
-  {
-    id: 1,
-    title: "My First Post",
-    description:
-      "This is the content of my first post. It's not very long, but it's a start!",
-    likes: 5,
-    comments: [
-      { id: 1, author: "Alice", content: "Great first post!" },
-      { id: 2, author: "Bob", content: "Looking forward to more!" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Another Day, Another Post",
-    description:
-      "Here's my second post. I'm getting the hang of this blogging thing!",
-    likes: 10,
-    comments: [
-      { id: 3, author: "Charlie", content: "Nice work!" },
-      { id: 4, author: "David", content: "Interesting thoughts." },
-    ],
-  },
-];
+const Post = ({ post }: { post: any }) => {
+  const [liked, setLiked] = useState<boolean>(false);
+  const [likes, setLikes] = useState<number>(0);
 
-const additionalPosts = [
-  {
-    id: 3,
-    title: "Third Time's the Charm",
-    description: "They say third time's the charm, so here's my third post!",
-    likes: 7,
-    comments: [
-      { id: 5, author: "Eve", content: "You're on a roll!" },
-      { id: 6, author: "Frank", content: "Keep them coming!" },
-    ],
-  },
-  {
-    id: 4,
-    title: "Four Score and Seven Posts Ago",
-    description:
-      "I'm running out of clever titles, but here's post number four!",
-    likes: 15,
-    comments: [
-      {
-        id: 7,
-        author: "Grace",
-        content: "I see what you did there with the title.",
+  const [
+    liking,
+    { data: likingData, loading: likingLoading, error: likingError },
+  ] = useMutation(addReaction(), {
+    variables: {
+      postId: post.id,
+      input: {
+        reaction: "+1",
+        overrideSingleChoiceReactions: true,
       },
-      { id: 8, author: "Henry", content: "History buff, are we?" },
-    ],
-  },  {
-    id: 5,
-    title: "Third Time's the Charm",
-    description: "They say third time's the charm, so here's my third post!",
-    likes: 7,
-    comments: [
-      { id: 5, author: "Eve", content: "You're on a roll!" },
-      { id: 6, author: "Frank", content: "Keep them coming!" },
-    ],
-  },
-  {
-    id: 6,
-    title: "Four Score and Seven Posts Ago",
-    description:
-      "I'm running out of clever titles, but here's post number four!",
-    likes: 15,
-    comments: [
-      {
-        id: 7,
-        author: "Grace",
-        content: "I see what you did there with the title.",
-      },
-      { id: 8, author: "Henry", content: "History buff, are we?" },
-    ],
-  },  {
-    id: 7,
-    title: "Third Time's the Charm",
-    description: "They say third time's the charm, so here's my third post!",
-    likes: 7,
-    comments: [
-      { id: 5, author: "Eve", content: "You're on a roll!" },
-      { id: 6, author: "Frank", content: "Keep them coming!" },
-    ],
-  },
-  {
-    id: 8,
-    title: "Four Score and Seven Posts Ago",
-    description:
-      "I'm running out of clever titles, but here's post number four!",
-    likes: 15,
-    comments: [
-      {
-        id: 7,
-        author: "Grace",
-        content: "I see what you did there with the title.",
-      },
-      { id: 8, author: "Henry", content: "History buff, are we?" },
-    ],
-  },
-];
+    },
+  });
 
-// Post component
-const Post = ({
-  post,
-  onLike,
-  onAddComment,
-}: {
-  post: any;
-  onLike: any;
-  onAddComment: any;
-}) => {
-  const [newComment, setNewComment] = useState("");
-
-  const handleAddComment = (e: any) => {
-    e.preventDefault();
-    if (newComment.trim()) {
-      onAddComment(post.id, newComment);
-      setNewComment("");
+  const [
+    disliking,
+    { data: dislikingData, loading: dislikingLoading, error: dislikingError },
+  ] = useMutation(removeReaction(), {
+    variables: {
+      postId: post.id,
+      reaction: "+1",
+    },
+  });
+  const handleLike = () => {
+    setLiked((prevState) => !prevState);
+    if (liked) {
+      disliking();
+      setLikes((prevState) => prevState - 1);
+    } else {
+      setLikes((prevState) => prevState + 1);
+      liking();
     }
   };
 
+  useEffect(() => {
+    setLiked(post?.reactions[0]?.reacted);
+    setLikes(post?.reactionsCount || 0);
+  }, [post]);
+  console.log(post);
+
   return (
     <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>{post.title}</CardTitle>
-      </CardHeader>
+      <Link to={post.id}>
+        <CardHeader>
+          <CardTitle className="text-left text-black	">{post.title}</CardTitle>
+        </CardHeader>
+      </Link>
       <CardContent>
-        <p className="text-muted-foreground mb-4">{post.description}</p>
+        <p className="text-muted-foreground mb-4 text-left">
+          {post.description}
+        </p>
         <div className="flex items-center space-x-4 mb-4">
-          <Button variant="outline" size="sm" onClick={() => onLike(post.id)}>
-            <ThumbsUp className="mr-2 h-4 w-4" /> {post.likes} Likes
+          <Button variant="outline" size="sm" onClick={handleLike}>
+            <ThumbsUp
+              className={`mr-2 h-4 w-4 ${
+                liked ? "fill-current text-black-500" : ""
+              }`}
+            />{" "}
+            {likes} Likes
           </Button>
           <div className="flex items-center">
             <MessageCircle className="mr-2 h-4 w-4" />
-            <span>{post.comments.length} Comments</span>
+            <span>{post.replies.nodes.length} Comments</span>
           </div>
         </div>
         <Separator className="my-4" />
         <div className="space-y-4">
-          {post.comments.map((comment: any) => (
-            <div key={comment.id} className="flex items-start space-x-4">
-              <Avatar>
-                <AvatarFallback>{comment.author[0]}</AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{comment.author}</p>
-                <p className="text-sm text-muted-foreground">
-                  {comment.content}
-                </p>
+          {post.replies.nodes.map((comment: any) => {
+            console.log(comment.owner.member);
+
+            return (
+              <div key={comment.id} className="flex items-start space-x-4">
+                <img
+                  className="shrink-0 rounded-avatar h-[3rem] w-[3rem] object-cover object-center rounded-full"
+                  src={comment.owner?.member?.profilePicture?.url}
+                />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-left">
+                    {comment.owner.member.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground text-left">
+                    {comment.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
-      <CardFooter>
-        <form onSubmit={handleAddComment} className="w-full">
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="flex-grow"
-            />
-            <Button type="submit">Post</Button>
-          </div>
-        </form>
-      </CardFooter>
     </Card>
   );
 };
 
 // Main Posts component
 export default function Posts() {
-  const [posts, setPosts] = useState(initialPosts);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
 
-  const handleLike = useCallback((postId: any) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, likes: post.likes + 1 } : post
-      )
-    );
-  }, []);
+  const { data, loading, error } = useQuery(getPosts(), {
+    variables: {
+      limit: 50 * page,
+      postTypeIds: [
+        "vLrOvQ20J61YIgx",
+        "L3Wt0PM4KIkzZlE",
+        "JL7C2DDhErvQPTz",
+        "bFScuuQzcQJlQvZ",
+        "at3PgXfPVdzurWL",
+        "12HF7mD8Ph0kGpi",
+      ],
+      orderByString: "publishedAt",
+      reverse: true,
+      filterBy: [],
+    },
+  });
 
-  const handleAddComment = useCallback((postId: any, content: any) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              comments: [
-                ...post.comments,
-                { id: Date.now(), author: "You", content },
-              ],
-            }
-          : post
-      )
-    );
-  }, []);
+  const handleLike = useCallback((postId: any) => {}, []);
 
   const loadMorePosts = () => {
-    setLoading(true);
-    // Simulate API call delay
-    setTimeout(() => {
-      setPosts((prevPosts) => [...prevPosts, ...additionalPosts]);
-      setPage((prevPage) => prevPage + 1);
-      setLoading(false);
-    }, 1000);
+    setPage((prevPage) => prevPage + 1);
   };
 
+  if (loading)
+    return (
+      <img
+        width="170"
+        height="32"
+        src="https://tribe-s3-production.imgix.net/GV7xVRrfDEXMuc8p8y2O3?fit=max&w=1000&auto=compress,format"
+      />
+    );
+  if (error) return <pre>{error.message}</pre>;
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Posts</h1>
-      {posts.map((post) => (
+      {data.posts.nodes.map((post: any) => (
         <Post
           key={post.id}
           post={post}
-          onLike={handleLike}
-          onAddComment={handleAddComment}
         />
       ))}
-      {page < 2 && (
-        <div className="flex justify-center mt-6">
-          <Button onClick={loadMorePosts} disabled={loading}>
-            {loading ? "Loading..." : "Show More"}
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-center mt-6">
+        <Button onClick={loadMorePosts} disabled={loading}>
+          {loading ? "Loading..." : "Show More"}
+        </Button>
+      </div>
     </div>
   );
 }
