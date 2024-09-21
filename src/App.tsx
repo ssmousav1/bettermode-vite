@@ -27,7 +27,6 @@ const router = createBrowserRouter([
         path: "/posts",
         element: <Posts />,
         errorElement: <ErrorPage />,
-        children: [],
       },
       {
         path: "posts/:postId",
