@@ -161,6 +161,11 @@ export function getPost() {
                 id
                 username
                 __typename
+                profilePicture {
+                  ... on Image {
+                    url
+                  }
+                }
               }
             }
             reactions {
