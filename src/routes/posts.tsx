@@ -48,7 +48,6 @@ const Post = ({ post }: { post: any }) => {
     setLiked(post?.reactions[0]?.reacted);
     setLikes(post?.reactionsCount || 0);
   }, [post]);
-  console.log(post);
 
   return (
     <Card className="mb-6">
@@ -72,14 +71,12 @@ const Post = ({ post }: { post: any }) => {
           </Button>
           <div className="flex items-center">
             <MessageCircle className="mr-2 h-4 w-4" />
-            <span>{post.replies.nodes.length} Comments</span>
+            <span>{post.replies?.nodes?.length} Comments</span>
           </div>
         </div>
         <Separator className="my-4" />
         <div className="space-y-4">
-          {post.replies.nodes.map((comment: any) => {
-            console.log(comment.owner.member);
-
+          {post?.replies?.nodes.map((comment: any) => {
             return (
               <div key={comment.id} className="flex items-start space-x-4">
                 <img
